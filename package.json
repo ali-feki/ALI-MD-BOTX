@@ -1,0 +1,23 @@
+{
+  "name": "ali-md-deployer",
+  "version": "2.0.0",
+  "description": "Secure loader for ALI-MD WhatsApp Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node deploy.js",
+    "pm2": "pm2 start deploy.js --name ali-md",
+    "pm2:stop": "pm2 stop ali-md",
+    "pm2:restart": "pm2 restart ali-md",
+    "pm2:logs": "pm2 logs ali-md"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "adm-zip": "^0.5.10",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "ALI-INXIDE",
+  "license": "MIT"
+}
