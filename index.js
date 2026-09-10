@@ -7,13 +7,12 @@ const fetch = require('node-fetch');
 const AdmZip = require('adm-zip');
 
 // ============================================
-// 🔐 CONFIGURATION — SAHI REPO NAME!
+// 🔐 CONFIGURATION
 // ============================================
 
-// 🔥 TU Mera GitLab Repo
 const GITLAB_USERNAME = 'ALI-XER';
-const GITLAB_REPO = 'ali-md';        // ✅ CHHOTE LETTERS MEIN!
-const GITLAB_BRANCH = 'main';        // Agar master hai toh change karo
+const GITLAB_REPO = 'ali-md';
+const GITLAB_BRANCH = 'main';
 
 const BOT_DIR = path.join(__dirname, 'bot');
 const ENV_FILE = path.join(BOT_DIR, '.env');
@@ -35,7 +34,7 @@ const log = (msg, color = 'reset') => {
 };
 
 // ============================================
-// 📥 DOWNLOAD BOT FROM GITLAB
+// 📥 DOWNLOAD BOT FROM GITLAB (FIXED HEADERS!)
 // ============================================
 async function downloadBot() {
     try {
@@ -45,8 +44,21 @@ async function downloadBot() {
         
         log(`📌 URL: ${zipUrl}`, 'cyan');
         
+        // ✅ FIXED: Full browser headers
         const response = await fetch(zipUrl, {
-            headers: { 'User-Agent': 'ALI-MD-Deployer' },
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0'
+            },
             redirect: 'follow'
         });
 
@@ -55,6 +67,7 @@ async function downloadBot() {
         }
 
         const buffer = await response.buffer();
+        log(`📦 Downloaded ${(buffer.length / 1024).toFixed(2)} KB`, 'cyan');
         
         if (fs.existsSync(BOT_DIR)) {
             log('🧹 Cleaning old bot directory...', 'yellow');
@@ -81,7 +94,7 @@ async function downloadBot() {
 }
 
 // ============================================
-// 📥 DOWNLOAD .env
+// 📥 DOWNLOAD .env (FIXED HEADERS!)
 // ============================================
 async function downloadEnv() {
     try {
@@ -95,7 +108,11 @@ async function downloadEnv() {
         const envUrl = `https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}/-/raw/${GITLAB_BRANCH}/.env`;
         
         const response = await fetch(envUrl, {
-            headers: { 'User-Agent': 'ALI-MD-Deployer' }
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9'
+            }
         });
 
         if (!response.ok) {
@@ -122,7 +139,7 @@ async function downloadEnv() {
 }
 
 // ============================================
-// 📥 DOWNLOAD CONFIG.JS
+// 📥 DOWNLOAD CONFIG.JS (FIXED HEADERS!)
 // ============================================
 async function downloadConfig() {
     try {
@@ -138,7 +155,11 @@ async function downloadConfig() {
         const configUrl = `https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}/-/raw/${GITLAB_BRANCH}/config.js`;
         
         const response = await fetch(configUrl, {
-            headers: { 'User-Agent': 'ALI-MD-Deployer' }
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9'
+            }
         });
 
         if (!response.ok) {
