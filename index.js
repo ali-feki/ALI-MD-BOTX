@@ -10,9 +10,10 @@ const AdmZip = require('adm-zip');
 // 🔐 CONFIGURATION
 // ============================================
 
-const GITLAB_USERNAME = 'ALI-XER';
-const GITLAB_REPO = 'ali-md';
-const GITLAB_BRANCH = 'main';
+const GITLAB_USERNAME = process.env.GITLAB_USERNAME || 'ALI-XER';
+const GITLAB_REPO = process.env.GITLAB_REPO || 'ali-md';
+const GITLAB_BRANCH = process.env.GITLAB_BRANCH || 'main';
+const GITLAB_TOKEN = process.env.GITLAB_TOKEN || null; // Optional private repo support
 
 const BOT_DIR = path.join(__dirname, 'bot');
 const ENV_FILE = path.join(BOT_DIR, '.env');
@@ -34,33 +35,68 @@ const log = (msg, color = 'reset') => {
 };
 
 // ============================================
+// 🔍 DEBUG INFO
+// ============================================
+function showDebugInfo() {
+    log('\n🔍 Configuration:', 'cyan');
+    log(`   GitLab User: ${GITLAB_USERNAME}`, 'cyan');
+    log(`   Repository: ${GITLAB_REPO}`, 'cyan');
+    log(`   Branch: ${GITLAB_BRANCH}`, 'cyan');
+    log(`   Token: ${GITLAB_TOKEN ? '✓ Set' : '✗ Not set (public only)'}`, 'cyan');
+    log(`   Bot Dir: ${BOT_DIR}`, 'cyan');
+    log('');
+}
+
+// ============================================
 // 📥 DOWNLOAD BOT FROM GITLAB (FIXED HEADERS!)
 // ============================================
 async function downloadBot() {
     try {
-        log('\n📦 Downloading bot from GitLab...', 'cyan');
+        log('📦 Downloading bot from GitLab...', 'cyan');
         
         const zipUrl = `https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}/-/archive/${GITLAB_BRANCH}/${GITLAB_REPO}-${GITLAB_BRANCH}.zip`;
         
         log(`📌 URL: ${zipUrl}`, 'cyan');
         
-        // ✅ FIXED: Full browser headers
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0'
+        };
+        
+        // Add token if available for private repos
+        if (GITLAB_TOKEN) {
+            headers['PRIVATE-TOKEN'] = GITLAB_TOKEN;
+        }
+        
         const response = await fetch(zipUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
-                'Cache-Control': 'max-age=0'
-            },
+            headers,
             redirect: 'follow'
         });
+
+        if (response.status === 404) {
+            log(`\n❌ Repository not found (404)`, 'red');
+            log(`\n💡 Troubleshooting:`, 'yellow');
+            log(`   1. Verify repo exists: https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}`, 'yellow');
+            log(`   2. Check username: ${GITLAB_USERNAME}`, 'yellow');
+            log(`   3. Check repo name: ${GITLAB_REPO}`, 'yellow');
+            log(`   4. Check branch exists: ${GITLAB_BRANCH}`, 'yellow');
+            log(`   5. If private, set GITLAB_TOKEN env var`, 'yellow');
+            log(`\n📝 Set env vars in .env:`, 'cyan');
+            log(`   GITLAB_USERNAME=your-username`, 'cyan');
+            log(`   GITLAB_REPO=your-repo`, 'cyan');
+            log(`   GITLAB_BRANCH=main (or your branch)`, 'cyan');
+            log(`   GITLAB_TOKEN=glpat-xxxx (if private)`, 'cyan');
+            return false;
+        }
 
         if (!response.ok) {
             throw new Error(`GitLab error: ${response.status} - ${response.statusText}`);
@@ -107,13 +143,17 @@ async function downloadEnv() {
         
         const envUrl = `https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}/-/raw/${GITLAB_BRANCH}/.env`;
         
-        const response = await fetch(envUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9'
-            }
-        });
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9'
+        };
+        
+        if (GITLAB_TOKEN) {
+            headers['PRIVATE-TOKEN'] = GITLAB_TOKEN;
+        }
+
+        const response = await fetch(envUrl, { headers });
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -154,13 +194,17 @@ async function downloadConfig() {
         
         const configUrl = `https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}/-/raw/${GITLAB_BRANCH}/config.js`;
         
-        const response = await fetch(configUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9'
-            }
-        });
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9'
+        };
+        
+        if (GITLAB_TOKEN) {
+            headers['PRIVATE-TOKEN'] = GITLAB_TOKEN;
+        }
+
+        const response = await fetch(configUrl, { headers });
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -257,19 +301,16 @@ function startBot() {
 // ============================================
 async function main() {
     console.clear();
-    log('\n🔥 ALI-MD GitLab Deployer v1.0', 'bright');
-    log('═'.repeat(50), 'cyan');
-    log(`📁 GitLab Repo: ${GITLAB_USERNAME}/${GITLAB_REPO}`, 'magenta');
-    log(`📂 Bot Directory: ${BOT_DIR}`, 'magenta');
+    log('\n🔥 ALI-MD GitLab Deployer v2.0', 'bright');
     log('═'.repeat(50), 'cyan');
     
-    log('\n✅ GitLab Public Repo - No token needed!', 'green');
+    showDebugInfo();
     
     const botExists = fs.existsSync(BOT_DIR) && 
                       fs.existsSync(path.join(BOT_DIR, 'index.js'));
     
     if (!botExists) {
-        log('\n📦 First time setup detected...', 'yellow');
+        log('📦 First time setup detected...', 'yellow');
         
         const downloaded = await downloadBot();
         if (!downloaded) {
