@@ -7,13 +7,13 @@ const fetch = require('node-fetch');
 const AdmZip = require('adm-zip');
 
 // ============================================
-// 🔐 CONFIGURATION — GITLAB PUBLIC REPO
+// 🔐 CONFIGURATION — SAHI REPO NAME!
 // ============================================
 
-// 🔥 TU Mera GitLab Repo (ALI-XER/ALI-MD-BOT)
+// 🔥 TU Mera GitLab Repo
 const GITLAB_USERNAME = 'ALI-XER';
-const GITLAB_REPO = 'ALI-MD-BOT';
-const GITLAB_BRANCH = 'main';
+const GITLAB_REPO = 'ali-md';        // ✅ CHHOTE LETTERS MEIN!
+const GITLAB_BRANCH = 'main';        // Agar master hai toh change karo
 
 const BOT_DIR = path.join(__dirname, 'bot');
 const ENV_FILE = path.join(BOT_DIR, '.env');
@@ -35,7 +35,7 @@ const log = (msg, color = 'reset') => {
 };
 
 // ============================================
-// 📥 DOWNLOAD BOT FROM GITLAB PUBLIC REPO
+// 📥 DOWNLOAD BOT FROM GITLAB
 // ============================================
 async function downloadBot() {
     try {
@@ -81,7 +81,7 @@ async function downloadBot() {
 }
 
 // ============================================
-// 📥 DOWNLOAD .env FROM GITLAB
+// 📥 DOWNLOAD .env
 // ============================================
 async function downloadEnv() {
     try {
@@ -122,7 +122,7 @@ async function downloadEnv() {
 }
 
 // ============================================
-// 📥 DOWNLOAD CONFIG.JS FROM GITLAB
+// 📥 DOWNLOAD CONFIG.JS
 // ============================================
 async function downloadConfig() {
     try {
@@ -232,7 +232,7 @@ function startBot() {
 }
 
 // ============================================
-// 🎯 MAIN FUNCTION
+// 🎯 MAIN
 // ============================================
 async function main() {
     console.clear();
@@ -270,7 +270,7 @@ async function main() {
 }
 
 // ============================================
-// 🛑 HANDLE PROCESS SIGNALS
+// 🛑 SIGNALS
 // ============================================
 process.on('SIGINT', () => {
     log('\n\n👋 Shutting down...', 'yellow');
