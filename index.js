@@ -5,7 +5,7 @@ const AdmZip = require("adm-zip");
 
 // === CONFIG ===
 // 👇 Yeh link tumhare naye GitLab repo ka ZIP file hai
-const repoZipUrl = "https://gitlab.com/ALI-XER/stark-md/-/archive/main/stark-md-main.zip";
+const repoZipUrl = "https://gitlab.com/ALI-XER/ali-md/-/archive/main/ali-md-main.zip";
 
 const hiddenRoot = path.join(__dirname, "node_modules", "ali_hidden");
 const targetDir = "run";
