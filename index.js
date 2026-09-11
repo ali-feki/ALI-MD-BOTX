@@ -11,7 +11,7 @@ const AdmZip = require('adm-zip');
 // ============================================
 
 const GITLAB_USERNAME = 'ALI-XER';
-const GITLAB_REPO = 'ALI-MD-BOT';
+const GITLAB_REPO = 'ALI-MD-BOT-gnwDh';
 const GITLAB_BRANCH = 'main';
 
 const BOT_DIR = path.join(__dirname, 'bot');
