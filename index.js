@@ -3,7 +3,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { exec, spawn } = require('child_process');
-const fetch = require('node-fetch');
+const fetch = require('node-fetch');  // ✅ v2 use karo!
 const AdmZip = require('adm-zip');
 
 // ============================================
@@ -12,7 +12,7 @@ const AdmZip = require('adm-zip');
 
 const GITLAB_USERNAME = 'ALI-XER';
 const GITLAB_REPO = 'stark-md';
-const GITLAB_BRANCH = 'main';   // Agar master hai toh 'master' karo
+const GITLAB_BRANCH = 'main';
 
 const BOT_DIR = path.join(__dirname, 'bot');
 const ENV_FILE = path.join(BOT_DIR, '.env');
@@ -34,18 +34,22 @@ const log = (msg, color = 'reset') => {
 };
 
 // ============================================
-// 📥 DOWNLOAD BOT FROM GITLAB PUBLIC REPO
+// 📥 DOWNLOAD BOT FROM GITLAB (FIXED!)
 // ============================================
 async function downloadBot() {
     try {
         log('\n📦 Downloading bot from GitLab...', 'cyan');
         
-        const zipUrl = `https://gitlab.com/${GITLAB_USERNAME}/${GITLAB_REPO}/-/archive/${GITLAB_BRANCH}/${GITLAB_REPO}-${GITLAB_BRANCH}.zip`;
+        // ✅ GitLab API endpoint (yeh zyada reliable hai)
+        const projectPath = encodeURIComponent(`${GITLAB_USERNAME}/${GITLAB_REPO}`);
+        const zipUrl = `https://gitlab.com/api/v4/projects/${projectPath}/repository/archive.zip?sha=${GITLAB_BRANCH}`;
         
         log(`📌 URL: ${zipUrl}`, 'cyan');
         
         const response = await fetch(zipUrl, {
-            headers: { 'User-Agent': 'ALI-MD-Deployer' },
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
             redirect: 'follow'
         });
 
@@ -54,6 +58,7 @@ async function downloadBot() {
         }
 
         const buffer = await response.buffer();
+        log(`📦 Downloaded ${(buffer.length / 1024).toFixed(2)} KB`, 'cyan');
         
         if (fs.existsSync(BOT_DIR)) {
             log('🧹 Cleaning old bot directory...', 'yellow');
@@ -80,7 +85,7 @@ async function downloadBot() {
 }
 
 // ============================================
-// 📥 DOWNLOAD .env FROM GITLAB
+// 📥 DOWNLOAD .env
 // ============================================
 async function downloadEnv() {
     try {
@@ -121,7 +126,7 @@ async function downloadEnv() {
 }
 
 // ============================================
-// 📥 DOWNLOAD CONFIG.JS FROM GITLAB
+// 📥 DOWNLOAD CONFIG.JS
 // ============================================
 async function downloadConfig() {
     try {
